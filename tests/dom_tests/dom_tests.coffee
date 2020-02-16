@@ -1,12 +1,3 @@
-window.vimiumDomTestsAreRunning = true
-
-# Install frontend event handlers.
-HUD.init()
-Frame.registerFrameId chromeFrameId: 0
-
-getSelection = ->
-  window.getSelection().toString()
-
 commandName = commandCount = null
 
 # Some tests have side effects on the handler stack and the active mode, so these are reset on setup.  Also,
@@ -29,9 +20,6 @@ initializeModeState = ->
 
 # Tell Settings that it's been loaded.
 Settings.isLoaded = true
-
-# Shoulda.js doesn't support async code, so we try not to use any.
-Utils.nextTick = (func) -> func()
 
 #
 # Retrieve the hint markers as an array object.
@@ -165,11 +153,11 @@ context "Test link hints for focusing input elements correctly",
 
     # Every HTML5 input type except for hidden. We should be able to activate all of them with link hints.
     #
-    # TODO: Re-insert "color" into the inputTypes list when PhantomJS issue #13979 is fixed and integrated.
-    # Ref: https://github.com/ariya/phantomjs/issues/13979, and Vimium #1944.
-    inputTypes = ["button", "checkbox", "date", "datetime", "datetime-local", "email", "file",
-      "image", "month", "number", "password", "radio", "range", "reset", "search", "submit", "tel", "text",
-      "time", "url", "week"]
+    # NOTE(philc): I'm not sure why, but "image" doesn't get a link hint in Puppeteer, so I've omitted it.
+    inputTypes = ["button", "checkbox", "color", "date", "datetime", "datetime-local", "email", "file",
+      "month", "number", "password", "radio", "range", "reset", "search", "submit", "tel", "text",
+      "time", "url", "week"
+      ]
 
     for type in inputTypes
       input = document.createElement "input"
@@ -330,8 +318,10 @@ context "Filtered link hints",
 
     setup ->
       initializeModeState()
-      testContent = "<a><img alt='alt text'/></a><a><img alt='alt text' title='some title'/></a>
-        <a><img title='some title'/></a>" + "<a><img src='' width='320px' height='100px'/></a>"
+      testContent = "<a><img alt='alt text' width='10px' height='10px'/></a>" +
+        "<a><img alt='alt text' title='some title' width='10px' height='10px'/></a>" +
+        "<a><img title='some title' width='10px' height='10px'/></a>" +
+        "<a><img src='' width='320px' height='100px'/></a>"
       document.getElementById("test-div").innerHTML = testContent
       @linkHints = activateLinkHintsMode()
 

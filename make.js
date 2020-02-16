@@ -3,7 +3,6 @@
 // This is a set of tasks for building and testing Vimium in development.
 
 fs = require("fs");
-path = require("path");
 child_process = require("child_process");
 
 // Spawns a new process and returns it.
@@ -31,8 +30,11 @@ function spawn(procName, optArray, silent = false, sync = false) {
 
 // Compile coffeescript into javascript.
 function build() {
-  coffee = spawn("coffee", ["-c", __dirname])
-  coffee.on("exit", (exitCode) => process.exit(exitCode))
+  coffee = spawn("coffee", ["-c", __dirname], false, true)
+  if (coffee.status != 0) {
+    console.log("Build failed. Coffee exited with status", coffee.status);
+    process.exit(coffee.status);
+  }
 }
 
 // Builds a zip file for submission to the Chrome store. The output is in dist/.
@@ -76,7 +78,7 @@ function buildStorePackage() {
 function runUnitTests() {
   console.log("Running unit tests...")
   projectDir = "."
-  basedir = path.join(projectDir, "/tests/unit_tests/")
+  basedir = projectDir + "/tests/unit_tests/";
   test_files = fs.readdirSync(basedir).filter((filename) => filename.indexOf("_test.js") > 0)
   test_files = test_files.map((filename) => basedir + filename)
   test_files.forEach((file) => {
@@ -86,17 +88,28 @@ function runUnitTests() {
   return Tests.run();
 }
 
-// Requires running phantomjs. Returns true if all tests pass; false otherwise.
-// TODO(philc): return a promise.
+// Returns how many tests fail.
 function runDomTests() {
-  console.log("Running DOM tests...")
-  phantom = spawn("phantomjs", ["./tests/dom_tests/phantom_runner.js"]);
-  phantom.on("exit", (returnCode) => {
-    if (returnCode > 0)
-      process.exit(1)
-    else
-      process.exit(0)
-  });
+  const puppeteer = require("puppeteer");
+
+  const testFile = __dirname + "/tests/dom_tests/dom_tests.html";
+
+  (async () => {
+    const browser = await puppeteer.launch({
+      // NOTE(philc): "Disabling web security" is required for vomnibar_test.js, because we have a file://
+      // page accessing an iframe, and Chrome prevents this because it's a cross-origin request.
+      args: ['--disable-web-security']
+    });
+    const page = await browser.newPage();
+    page.on("console", msg => console.log(msg.text()));
+    await page.goto("file://" + testFile);
+    const testsFailed = await page.evaluate(() => {
+      Tests.run();
+      return Tests.testsFailed;
+    });
+    await browser.close();
+    return testsFailed;
+  })();
 }
 
 // Prints the list of valid commands.
@@ -122,8 +135,9 @@ command(
   "test",
   "Run all tests",
   () => {
-    const failed = runUnitTests() > 0;
-    runDomTests();
+    build();
+    let failed = runUnitTests();
+    failed += runDomTests();
     if (failed > 0)
       Process.exit(1);
   });
@@ -132,6 +146,7 @@ command(
   "test-unit",
   "Run unit tests",
   () => {
+    build();
     const failed = runUnitTests() > 0;
     if (failed > 0)
       Process.exit(1);
@@ -140,7 +155,12 @@ command(
 command(
   "test-dom",
   "Run DOM tests",
-  runDomTests);
+  () => {
+    build();
+    const failed = runDomTests();
+    if (failed > 0)
+      Process.exit(1);
+  });
 
 command(
   "autobuild",

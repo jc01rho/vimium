@@ -79,7 +79,8 @@ class GrabBackFocus extends Mode
     return @continueBubbling unless DomUtils.isFocusable element
     unless @logged or element == document.body
       @logged = true
-      console.log "An auto-focusing action on this page was blocked by Vimium."
+      unless window.vimiumDomTestsAreRunning
+        console.log "An auto-focusing action on this page was blocked by Vimium."
     element.blur()
     @suppressEvent
 
@@ -258,7 +259,7 @@ flashFrame = do ->
     highlightedFrameElement ?= do ->
       # Create a shadow DOM wrapping the frame so the page's styles don't interfere with ours.
       highlightedFrameElement = DomUtils.createElement "div"
-      # PhantomJS doesn't support createShadowRoot, so guard against its non-existance.
+      # Firefox doesn't support createShadowRoot, so guard against its non-existance.
       # https://hacks.mozilla.org/2018/10/firefox-63-tricks-and-treats/ says
       # Firefox 63 has enabled Shadow DOM v1 by default
       _shadowDOM = highlightedFrameElement.attachShadow?( mode: "open" ) ?
