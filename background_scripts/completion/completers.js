@@ -184,14 +184,14 @@ export class Suggestion {
   mergeRanges(ranges) {
     let previous = ranges.shift();
     const mergedRanges = [previous];
-    ranges.forEach(function (range) {
+    for (const range of ranges) {
       if (previous[1] >= range[0]) {
         previous[1] = Math.max(range[1], previous[1]);
       } else {
         mergedRanges.push(range);
         previous = range;
       }
-    });
+    }
     return mergedRanges;
   }
 
@@ -317,7 +317,9 @@ export class BookmarkCompleter {
   // Traverses the bookmark hierarchy, and returns a flattened list of all bookmarks.
   traverseBookmarks(bookmarks) {
     const results = [];
-    bookmarks.forEach((folder) => this.traverseBookmarksRecursive(folder, results));
+    for (const folder of bookmarks) {
+      this.traverseBookmarksRecursive(folder, results);
+    }
     return results;
   }
 
@@ -336,9 +338,9 @@ export class BookmarkCompleter {
     }
     results.push(bookmark);
     if (bookmark.children) {
-      bookmark.children.forEach((child) =>
-        this.traverseBookmarksRecursive(child, results, bookmark)
-      );
+      for (const child of bookmark.children) {
+        this.traverseBookmarksRecursive(child, results, bookmark);
+      }
     }
   }
 
@@ -442,7 +444,9 @@ export class DomainCompleter {
   async populateDomains() {
     await HistoryCache.onLoaded();
     this.domains = {};
-    HistoryCache.history.forEach((entry) => this.onVisited(entry));
+    for (const entry of HistoryCache.history) {
+      this.onVisited(entry);
+    }
     chrome.history.onVisited.addListener(this.onVisited.bind(this));
     chrome.history.onVisitRemoved.addListener(this.onVisitRemoved.bind(this));
   }
@@ -452,7 +456,7 @@ export class DomainCompleter {
     if (domain) {
       const slot = this.domains[domain] ||
         (this.domains[domain] = { entry: newPage, referenceCount: 0 });
-      // We want each entry in our domains hash to point to the most recent History entry for that
+      // We want each entry in our domains map to point to the most recent History entry for that
       // domain.
       if (slot.entry.lastVisitTime < newPage.lastVisitTime) {
         slot.entry = newPage;
@@ -465,19 +469,23 @@ export class DomainCompleter {
     if (toRemove.allHistory) {
       this.domains = {};
     } else {
-      toRemove.urls.forEach((url) => {
+      for (const url of toRemove.urls) {
         const domain = this.parseDomainAndScheme(url);
-        if (domain && this.domains[domain] && ((this.domains[domain].referenceCount -= 1) === 0)) {
-          return delete this.domains[domain];
+        const entry = this.domains[domain];
+        if (entry == null) continue;
+        entry.referenceCount--;
+        if (entry.referenceCount <= 0) {
+          delete this.domains[domain];
         }
-      });
+      }
     }
   }
 
   // Return something like "http://www.example.com" or false.
   parseDomainAndScheme(url) {
-    return UrlUtils.urlHasProtocol(url) && !UrlUtils.hasChromeProtocol(url) &&
-      url.split("/", 3).join("/");
+    if (UrlUtils.urlHasProtocol(url) && !UrlUtils.hasChromeProtocol(url)) {
+      return url.split("/", 3).join("/");
+    }
   }
 }
 
@@ -761,12 +769,12 @@ export const HistoryCache = {
     if (toRemove.allHistory) {
       this.history = [];
     } else {
-      toRemove.urls.forEach((url) => {
+      for (const url of toRemove.urls) {
         const i = HistoryCache.binarySearch({ url }, this.history, this.compareHistoryByUrl);
         if ((i < this.history.length) && (this.history[i].url === url)) {
           this.history.splice(i, 1);
         }
-      });
+      }
     }
   },
 };
