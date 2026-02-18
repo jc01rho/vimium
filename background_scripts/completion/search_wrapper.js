@@ -1,4 +1,4 @@
-import * as completionEngines from "./completion_engines.js";
+import * as completionEngines from "./search_engines.js";
 
 // This is a wrapper class for completion engines. It handles the case where a custom search engine
 // includes a prefix query term (or terms). For example:

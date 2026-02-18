@@ -2,7 +2,7 @@ import * as testHelper from "./test_helper.js";
 import "../../tests/unit_tests/test_chrome_stubs.js";
 import "../../lib/utils.js";
 import "../../lib/settings.js";
-import * as completionEngines from "../../background_scripts/completion_engines.js";
+import * as completionEngines from "../../background_scripts/completion/search_engines.js";
 import * as page from "../../pages/doc_completion_engines.js";
 
 context("completion engines page", () => {

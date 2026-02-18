@@ -11,9 +11,9 @@
 //    bookmarks).
 //  - cancel(): (optional) cancels any pending, cancelable action.
 
-import * as bgUtils from "./bg_utils.js";
-import * as completionSearch from "./completion_search.js";
-import * as userSearchEngines from "./user_search_engines.js";
+import * as bgUtils from "./../bg_utils.js";
+import * as completionSearch from "./search_wrapper.js";
+import * as userSearchEngines from "../user_search_engines.js";
 
 // Set this to true to render relevancy when debugging the ranking scores.
 const showRelevancy = false;

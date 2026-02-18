@@ -1,8 +1,8 @@
 import "./test_helper.js";
 import "../../background_scripts/tab_recency.js";
 import "../../background_scripts/bg_utils.js";
-import "../../background_scripts/completion_engines.js";
-import "../../background_scripts/completion_search.js";
+import "../../background_scripts/completion/search_engines.js";
+import "../../background_scripts/completion/search_wrapper.js";
 import * as userSearchEngines from "../../background_scripts/user_search_engines.js";
 import {
   BookmarkCompleter,
@@ -15,7 +15,7 @@ import {
   SearchEngineCompleter,
   Suggestion,
   TabCompleter,
-} from "../../background_scripts/completion.js";
+} from "../../background_scripts/completion/completers.js";
 import "../../lib/url_utils.js";
 
 const hours = (n) => 1000 * 60 * 60 * n;
