@@ -1,12 +1,12 @@
-// This file contains the definition of the completers used for the Vomnibox's suggestion UI. A
-// completer will take a query (whatever the user typed into the Vomnibox) and return a list of
+// This file contains the definition of the completers used for the Vomnibar's suggestion UI. A
+// completer will take a query (whatever the user typed into the Vomnibar) and return a list of
 // Suggestions, e.g. bookmarks, domains, URLs from history.
 //
-// The Vomnibox frontend script makes a "filterCompleter" request to the background page, which in
+// The Vomnibar frontend script makes a "filterCompleter" request to the background page, which in
 // turn calls filter() on each these completers.
 //
 // A completer is a class which has three functions:
-//  - filter(query): "query" will be whatever the user typed into the Vomnibox.
+//  - filter(query): "query" will be whatever the user typed into the Vomnibar.
 //  - refresh(): (optional) refreshes the completer's data source (e.g. refetches the list of
 //    bookmarks).
 //  - cancel(): (optional) cancels any pending, cancelable action.
