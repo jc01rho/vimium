@@ -249,7 +249,7 @@ export class Kagi extends BaseEngine {
   }
 }
 
-// On the user-facing documentation page pages/doc_completion_engines.html, the completion search
+// On the user-facing documentation page pages/doc_search_completion.html, the completion search
 // engines will be shown in this order.
 export const list = [
   Youtube,
