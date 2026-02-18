@@ -10,12 +10,12 @@ import {
   HistoryCache,
   HistoryCompleter,
   MultiCompleter,
-  RankingUtils,
-  RegexpCache,
   SearchEngineCompleter,
   Suggestion,
   TabCompleter,
 } from "../../background_scripts/completion/completers.js";
+import * as ranking from "../../background_scripts/completion/ranking.js";
+import { RegexpCache } from "../../background_scripts/completion/ranking.js";
 import "../../lib/url_utils.js";
 
 const hours = (n) => 1000 * 60 * 60 * n;
@@ -452,14 +452,14 @@ context("suggestions", () => {
   });
 });
 
-context("RankingUtils.wordRelevancy", () => {
+context("ranking.wordRelevancy", () => {
   should("score higher in shorter URLs", () => {
-    const highScore = RankingUtils.wordRelevancy(
+    const highScore = ranking.wordRelevancy(
       ["stack"],
       "http://stackoverflow.com/short",
       "a-title",
     );
-    const lowScore = RankingUtils.wordRelevancy(
+    const lowScore = ranking.wordRelevancy(
       ["stack"],
       "http://stackoverflow.com/longer",
       "a-title",
@@ -468,18 +468,18 @@ context("RankingUtils.wordRelevancy", () => {
   });
 
   should("score higher in shorter titles", () => {
-    const highScore = RankingUtils.wordRelevancy(["milk"], "a-url", "Milkshakes");
-    const lowScore = RankingUtils.wordRelevancy(["milk"], "a-url", "Milkshakes rocks");
+    const highScore = ranking.wordRelevancy(["milk"], "a-url", "Milkshakes");
+    const lowScore = ranking.wordRelevancy(["milk"], "a-url", "Milkshakes rocks");
     assert.isTrue(highScore > lowScore);
   });
 
   should("score higher for matching the start of a word (in a URL)", () => {
-    const lowScore = RankingUtils.wordRelevancy(
+    const lowScore = ranking.wordRelevancy(
       ["stack"],
       "http://Xstackoverflow.com/same",
       "a-title",
     );
-    const highScore = RankingUtils.wordRelevancy(
+    const highScore = ranking.wordRelevancy(
       ["stack"],
       "http://stackoverflowX.com/same",
       "a-title",
@@ -488,18 +488,18 @@ context("RankingUtils.wordRelevancy", () => {
   });
 
   should("score higher for matching the start of a word (in a title)", () => {
-    const lowScore = RankingUtils.wordRelevancy(["te"], "a-url", "Dist racted");
-    const highScore = RankingUtils.wordRelevancy(["te"], "a-url", "Distrac ted");
+    const lowScore = ranking.wordRelevancy(["te"], "a-url", "Dist racted");
+    const highScore = ranking.wordRelevancy(["te"], "a-url", "Distrac ted");
     assert.isTrue(highScore > lowScore);
   });
 
   should("score higher for matching a whole word (in a URL)", () => {
-    const lowScore = RankingUtils.wordRelevancy(
+    const lowScore = ranking.wordRelevancy(
       ["com"],
       "http://stackoverflow.comX/same",
       "a-title",
     );
-    const highScore = RankingUtils.wordRelevancy(
+    const highScore = ranking.wordRelevancy(
       ["com"],
       "http://stackoverflowX.com/same",
       "a-title",
@@ -508,8 +508,8 @@ context("RankingUtils.wordRelevancy", () => {
   });
 
   should("score higher for matching a whole word (in a title)", () => {
-    const lowScore = RankingUtils.wordRelevancy(["com"], "a-url", "abc comX");
-    const highScore = RankingUtils.wordRelevancy(["com"], "a-url", "abcX com");
+    const lowScore = ranking.wordRelevancy(["com"], "a-url", "abc comX");
+    const highScore = ranking.wordRelevancy(["com"], "a-url", "abcX com");
     assert.isTrue(highScore > lowScore);
   });
 });
@@ -517,13 +517,13 @@ context("RankingUtils.wordRelevancy", () => {
 // TODO: (smblott)
 // Word relevancy should take into account the number of matches (it doesn't currently). should
 // "score higher for multiple matches (in a URL)", ->
-//   lowScore  = RankingUtils.wordRelevancy(["stack"], "http://stackoverflow.com/Xxxxxx", "a-title")
-//   highScore = RankingUtils.wordRelevancy(["stack"], "http://stackoverflow.com/Xstack", "a-title")
+//   lowScore  = ranking.wordRelevancy(["stack"], "http://stackoverflow.com/Xxxxxx", "a-title")
+//   highScore = ranking.wordRelevancy(["stack"], "http://stackoverflow.com/Xstack", "a-title")
 //   assert.isTrue highScore > lowScore
 
 // should "score higher for multiple matches (in a title)", ->
-//   lowScore  = RankingUtils.wordRelevancy(["bbc"], "http://stackoverflow.com/same", "BBC Radio 4 (XBCr4)")
-//   highScore = RankingUtils.wordRelevancy(["bbc"], "http://stackoverflow.com/same", "BBC Radio 4 (BBCr4)")
+//   lowScore  = ranking.wordRelevancy(["bbc"], "http://stackoverflow.com/same", "BBC Radio 4 (XBCr4)")
+//   highScore = ranking.wordRelevancy(["bbc"], "http://stackoverflow.com/same", "BBC Radio 4 (BBCr4)")
 //   assert.isTrue highScore > lowScore
 
 context("Suggestion.pushMatchingRanges", () => {
@@ -575,56 +575,56 @@ context("Suggestion.pushMatchingRanges", () => {
   });
 });
 
-context("RankingUtils", () => {
+context("ranking", () => {
   should("do a case insensitive match", () => {
-    assert.isTrue(RankingUtils.matches(["ari"], "maRio"));
+    assert.isTrue(ranking.matches(["ari"], "maRio"));
   });
 
   should("do a case insensitive match on full term", () => {
-    assert.isTrue(RankingUtils.matches(["mario"], "MARio"));
+    assert.isTrue(ranking.matches(["mario"], "MARio"));
   });
 
   should("do a case insensitive match on several terms", () => {
     assert.isTrue(
-      RankingUtils.matches(["ari"], "DOES_NOT_MATCH", "DOES_NOT_MATCH_EITHER", "MARio"),
+      ranking.matches(["ari"], "DOES_NOT_MATCH", "DOES_NOT_MATCH_EITHER", "MARio"),
     );
   });
 
   should("do a smartcase match (positive)", () => {
-    assert.isTrue(RankingUtils.matches(["Mar"], "Mario"));
+    assert.isTrue(ranking.matches(["Mar"], "Mario"));
   });
 
   should("do a smartcase match (negative)", () => {
-    assert.isFalse(RankingUtils.matches(["Mar"], "mario"));
+    assert.isFalse(ranking.matches(["Mar"], "mario"));
   });
 
   should("do a match with regexp meta-characters (positive)", () => {
-    assert.isTrue(RankingUtils.matches(["ma.io"], "ma.io"));
+    assert.isTrue(ranking.matches(["ma.io"], "ma.io"));
   });
 
   should("do a match with regexp meta-characters (negative)", () => {
-    assert.isFalse(RankingUtils.matches(["ma.io"], "mario"));
+    assert.isFalse(ranking.matches(["ma.io"], "mario"));
   });
 
   should("do a smartcase match on full term", () => {
-    assert.isTrue(RankingUtils.matches(["Mario"], "Mario"));
-    assert.isFalse(RankingUtils.matches(["Mario"], "mario"));
+    assert.isTrue(ranking.matches(["Mario"], "Mario"));
+    assert.isFalse(ranking.matches(["Mario"], "mario"));
   });
 
   should("do case insensitive word relevancy (matching)", () => {
-    assert.isTrue(RankingUtils.wordRelevancy(["ari"], "MARIO", "MARio") > 0.0);
+    assert.isTrue(ranking.wordRelevancy(["ari"], "MARIO", "MARio") > 0.0);
   });
 
   should("do case insensitive word relevancy (not matching)", () => {
-    assert.isTrue(RankingUtils.wordRelevancy(["DOES_NOT_MATCH"], "MARIO", "MARio") === 0.0);
+    assert.isTrue(ranking.wordRelevancy(["DOES_NOT_MATCH"], "MARIO", "MARio") === 0.0);
   });
 
   should("every query term must match at least one thing (matching)", () => {
-    assert.isTrue(RankingUtils.matches(["cat", "dog"], "catapult", "hound dog"));
+    assert.isTrue(ranking.matches(["cat", "dog"], "catapult", "hound dog"));
   });
 
   should("every query term must match at least one thing (not matching)", () => {
-    assert.isTrue(!RankingUtils.matches(["cat", "dog", "wolf"], "catapult", "hound dog"));
+    assert.isTrue(!ranking.matches(["cat", "dog", "wolf"], "catapult", "hound dog"));
   });
 });
 
