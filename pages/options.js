@@ -137,7 +137,7 @@ function setFormFromSettings(settings) {
     }
   }
 
-  ExclusionRulesEditor.setForm(Settings.get("exclusionRules"));
+  ExclusionRulesEditor.setForm(settings["exclusionRules"]);
 
   document.querySelector("#upload-backup").value = "";
   maintainLinkHintsView();
