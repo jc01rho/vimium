@@ -27,7 +27,7 @@ const options = {
   waitForEnterForFilteredHints: "boolean",
 };
 
-async function init() {
+export async function init() {
   await Settings.onLoaded();
 
   const shortcutLabel = document.querySelector("#shortcut-to-save-all");
@@ -99,7 +99,7 @@ async function init() {
   setFormFromSettings(settings);
 }
 
-function getOptionEl(optionName) {
+export function getOptionEl(optionName) {
   return document.querySelector(`*[name="${optionName}"]`);
 }
 
@@ -263,7 +263,7 @@ function removeDuplicateChars(str) {
   return result;
 }
 
-async function saveOptions() {
+export async function saveOptions() {
   const hasErrors = showValidationErrors();
   if (hasErrors) {
     // TODO(philc): If no fields with validation errors are in view, scroll one of them into view
@@ -314,12 +314,17 @@ function maintainLinkHintsView() {
   );
 }
 
-function onDownloadBackupClicked() {
+export function prepareBackupSettings() {
   const backup = Settings.pruneOutDefaultValues(getSettingsFromForm());
   // Serialize the JSON keys so they're stable across backups. See #4764.
   const keys = Object.keys(backup).sort();
-  const settingsBlob = new Blob([JSON.stringify(backup, keys, 2) + "\n"]);
-  document.querySelector("#download-backup").href = URL.createObjectURL(settingsBlob);
+  return JSON.stringify(backup, keys, 2) + "\n";
+}
+
+function onDownloadBackupClicked() {
+  const settings = prepareBackupSettings();
+  const blob = new Blob([settings]);
+  document.querySelector("#download-backup").href = URL.createObjectURL(blob);
 }
 
 function onUploadBackupClicked() {
