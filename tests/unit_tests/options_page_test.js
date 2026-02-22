@@ -8,6 +8,10 @@ context("options page", () => {
     await optionsPage.init();
   });
 
+  teardown(async () => {
+    await Settings.clear();
+  });
+
   should("populate the form fields with the settings", () => {
     const settings = Settings.getSettings();
     const field = optionsPage.getOptionEl("keyMappings");
@@ -30,6 +34,17 @@ context("options page", () => {
     assert.isTrue(messageEls[0].innerHTML.includes(el.value));
   });
 
+  should("show exclusion rule editor for exclusion rules", async () => {
+    const rule = {
+      passKeys: "",
+      pattern: "example.com",
+    };
+    await Settings.set("exclusionRules", [rule]);
+    await optionsPage.init();
+    const el = document.querySelector("#exclusion-rules input[name=pattern]");
+    assert.equal("example.com", el.value);
+  });
+
   context("backup", () => {
     should("exclude settings which are default values", () => {
       const settings = JSON.parse(optionsPage.prepareBackupSettings());
@@ -39,7 +54,7 @@ context("options page", () => {
 
     should("include settings which have changed from the default", () => {
       optionsPage.getOptionEl("keyMappings").value = "map a scrollUp";
-      let settings = JSON.parse(optionsPage.prepareBackupSettings());
+      const settings = JSON.parse(optionsPage.prepareBackupSettings());
       assert.equal(["keyMappings", "settingsVersion"], Object.keys(settings));
       assert.equal("map a scrollUp", settings.keyMappings);
     });
@@ -49,6 +64,17 @@ context("options page", () => {
       optionsPage.getOptionEl("keyMappings").value = "map a scrollUp";
       const settings = JSON.parse(optionsPage.prepareBackupSettings());
       assert.equal(["keyMappings", "linkHintCharacters", "settingsVersion"], Object.keys(settings));
+    });
+
+    should("include exclusion rules", async () => {
+      const rule = {
+        passKeys: "",
+        pattern: "example.com",
+      };
+      await Settings.set("exclusionRules", [rule]);
+      await optionsPage.init();
+      const settings = JSON.parse(optionsPage.prepareBackupSettings());
+      assert.equal([rule], settings["exclusionRules"]);
     });
   });
 });
