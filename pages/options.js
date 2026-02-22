@@ -315,10 +315,13 @@ function maintainLinkHintsView() {
 }
 
 export function prepareBackupSettings() {
-  const backup = Settings.pruneOutDefaultValues(getSettingsFromForm());
-  // Serialize the JSON keys so they're stable across backups. See #4764.
-  const keys = Object.keys(backup).sort();
-  return JSON.stringify(backup, keys, 2) + "\n";
+  const settings = Settings.pruneOutDefaultValues(getSettingsFromForm());
+  // Serialize the JSON keys in order, so that they're stable across backups. See #4764.
+  const keys = Object.keys(settings).sort();
+  const sortedSettings = Object.fromEntries(keys.map((k) => [k, settings[k]]));
+  // Don't use an array replacer in JSON.stringify; it filters nested object keys too, which would
+  // drop nested fields inside exclusionRules (e.g. `pattern`, `passKeys`). See #4853.
+  return JSON.stringify(sortedSettings, null, 2) + "\n";
 }
 
 function onDownloadBackupClicked() {
